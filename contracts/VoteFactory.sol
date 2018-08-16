@@ -13,8 +13,8 @@ contract VoteFactory is Ownable, SafeMath {
         _;
     }
 
-    modifier timeDurationtState(uint256 _voteId, DurationTimeOption _duration) {
-        require(votes[_voteId].duration == _duration, "");
+    modifier timeDurationtState(uint256 _voteId, DurationTimeOption _durationState) {
+        require(votes[_voteId].duration == _durationState, "");
         _;
     }
 
@@ -40,7 +40,7 @@ contract VoteFactory is Ownable, SafeMath {
         string question;
         string[] answers;
         address[] voters;
-        DurationTimeOption duration;  
+        DurationTimeOption durationState;  
         uint256 lockTime;
         
         mapping (uint256 => uint256) voterToAnswer;
@@ -67,10 +67,16 @@ contract VoteFactory is Ownable, SafeMath {
         return votes[_voteId].answers[_answerId];
     }
 
-    function startVote(uint256 _voteId, uint256 _timeDuration) external ownerOfVote(_voteId) timeDurationtState(_voteId, DurationTimeOption.On) {
+    function startVote(uint256 _voteId) external ownerOfVote(_voteId) {
         votes[_voteId].state = State.Started;
         emit StartVote(_voteId);
+    }
+
+    function startVote(uint256 _voteId, uint256 _timeDuration) external ownerOfVote(_voteId) timeDurationtState(_voteId, DurationTimeOption.On) {
+        votes[_voteId].state = State.Started;
         votes[_voteId].lockTime = add (now, _timeDuration * 1 seconds);
+        emit StartVote(_voteId);
+
     }
 
     function getTime() public returns(uint256) {
@@ -78,16 +84,11 @@ contract VoteFactory is Ownable, SafeMath {
     } 
 
     function getDurationState(uint256 _voteId) public returns(DurationTimeOption) {
-        return votes[_voteId].duration;
+        return votes[_voteId].durationState;
     }
 
     function getLockTime(uint256 _voteId) public returns(uint256) {
         return votes[_voteId].lockTime;
-    }
-
-    function startVote(uint256 _voteId) external ownerOfVote(_voteId) {
-        votes[_voteId].state = State.Started;
-        emit StartVote(_voteId);
     }
     
     function stopVote(uint256 _voteId) external ownerOfVote(_voteId) stateOf(_voteId, State.Started) {
